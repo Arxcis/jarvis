@@ -13,16 +13,25 @@ from getpass import getpass
 from openpyxl import load_workbook
 from datetime import datetime
 
+def config():
+    print("")
+    print("🤖 Hello lassaron, I am Jarvis! I need som info, before we start:")
+    print("")
+    EMAIL = input("Email: (jon.filip.ultvedt@neat.no)") or "jon.filip.ultvedt@neat.no"
+    PASSWORD = getpass("Password:")
+    SECRET = getpass("Secret:")
+    YEAR = int(input("Invoice year: (2022)") or 2022)
+    MONTH = int(input("Invoice month: (2)") or 2)
+
+    INPUT = input("Input file: (./input.xlsx)") or "./input.xlsx"
+    OUTPUT_DIR = input("Output directory: (./output)") or "./output"
+    NETSUITE_URL = input("Netsuite URL: (https://5677765.app.netsuite.com/app/center/card.nl)") or "https://5677765.app.netsuite.com/app/center/card.nl"
+
+    return EMAIL, PASSWORD, SECRET, NETSUITE_URL, INPUT, OUTPUT_DIR, YEAR, MONTH
+
+
 def main():
-    #
-    # Config
-    #
-    EMAIL = "jon.filip.ultvedt@neat.no"
-    NETSUITE_URL = "https://5677765.app.netsuite.com/app/center/card.nl"
-    INPUT = "./input.xlsx"
-    OUTPUT_DIR = "./output"
-    YEAR = 2022
-    MONTH = 2
+    EMAIL, PASSWORD, SECRET, NETSUITE_URL, INPUT, OUTPUT_DIR, YEAR, MONTH = config()
 
     #
     # Program
@@ -33,7 +42,7 @@ def main():
 
     invoices = read_input(INPUT, YEAR, MONTH)
     browser = make_browser(OUTPUT_DIR)
-    authenticate(browser, NETSUITE_URL, EMAIL)
+    authenticate(browser, NETSUITE_URL, EMAIL, PASSWORD, SECRET)
 
     for i, invoice in enumerate(invoices):
         download_invoice(browser, invoice, NETSUITE_URL, OUTPUT_DIR)
@@ -90,16 +99,7 @@ def make_browser(OUTPUT_DIR):
     return browser
 
 
-def authenticate(browser, NETSUITE_URL, EMAIL):
-    # 0. Get username and password
-    print("")
-    print(f"--- Sign into {NETSUITE_URL} ---")
-    print("")
-    print(f"Email: {EMAIL}")
-    password = getpass("Password:")
-    secret_answer = getpass("Secret answer:")
-    print("")
-
+def authenticate(browser, NETSUITE_URL, EMAIL, PASSWORD, SECRET):
     # 1. Open browser window
     browser.maximize_window()
     browser.get(NETSUITE_URL)
@@ -108,11 +108,11 @@ def authenticate(browser, NETSUITE_URL, EMAIL):
     input_email = browser.find_element(by=By.CSS_SELECTOR, value="input#email")
     input_password = browser.find_element(by=By.CSS_SELECTOR, value="input#password")
     input_email.send_keys(EMAIL)
-    input_password.send_keys(password + Keys.ENTER)
+    input_password.send_keys(PASSWORD + Keys.ENTER)
 
     # 3. Answer to jesus
     answer = WebDriverWait(browser, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'input[name="answer"]')))
-    answer.send_keys(secret_answer + Keys.ENTER)
+    answer.send_keys(SECRET + Keys.ENTER)
 
 
 def download_invoice(browser, invoice, NETSUITE_URL, OUTPUT_DIR):
