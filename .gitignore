@@ -1,0 +1,4 @@
+output/
+*.xls
+*.xlsx
+.DS_Store
